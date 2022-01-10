@@ -134,6 +134,7 @@ CREATE INDEX IF NOT EXISTS idx_threads ON threads (id, title, author, forum, mes
 CREATE INDEX IF NOT EXISTS idx_threads_created ON threads (created);
 CREATE INDEX IF NOT EXISTS idx_threads_created_forum ON threads (forum, created);
 
+CREATE INDEX IF NOT EXISTS idx_posts_path ON posts USING GIN (path);
 CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts (thread);
 CREATE INDEX IF NOT EXISTS idx_posts_forum ON posts (forum);
 CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts (parent);
