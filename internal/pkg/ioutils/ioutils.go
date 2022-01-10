@@ -1,13 +1,20 @@
 package ioutils
 
 import (
-	"encoding/json"
 	"forumApp/internal/forumapp/models"
 	"io/ioutil"
 	"net/http"
 )
 
-func Send(w http.ResponseWriter, respCode int, respBody interface{}) {
+type ReadModel interface {
+	UnmarshalJSON(data []byte) error
+}
+
+type WriteModel interface {
+	MarshalJSON() ([]byte, error)
+}
+
+func Send(w http.ResponseWriter, respCode int, respBody WriteModel) {
 	w.WriteHeader(respCode)
 	_ = WriteJSON(w, respBody)
 	// if err != nil {
@@ -36,13 +43,41 @@ func SendWithoutBody(w http.ResponseWriter, respCode int) {
 	// }
 }
 
-func ReadJSON(r *http.Request, data interface{}) error {
+// func ReadJSON(r *http.Request, data interface{}) error {
+// 	byteReq, err := ioutil.ReadAll(r.Body)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = json.Unmarshal(byteReq, &data)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+// func WriteJSON(w http.ResponseWriter, data interface{}) error {
+// 	byteResp, err := json.Marshal(data)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	_, err = w.Write(byteResp)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+func ReadJSON(r *http.Request, data ReadModel) error {
 	byteReq, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(byteReq, &data)
+	err = data.UnmarshalJSON(byteReq)
 	if err != nil {
 		return err
 	}
@@ -50,8 +85,8 @@ func ReadJSON(r *http.Request, data interface{}) error {
 	return nil
 }
 
-func WriteJSON(w http.ResponseWriter, data interface{}) error {
-	byteResp, err := json.Marshal(data)
+func WriteJSON(w http.ResponseWriter, data WriteModel) error {
+	byteResp, err := data.MarshalJSON()
 	if err != nil {
 		return err
 	}

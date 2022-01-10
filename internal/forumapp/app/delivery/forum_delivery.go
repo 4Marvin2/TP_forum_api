@@ -158,7 +158,7 @@ func (uh *ForumHandler) CreatePostsHandler(w http.ResponseWriter, r *http.Reques
 
 	slugOrId := mux.Vars(r)["slug_or_id"]
 
-	var newPosts []models.Post
+	var newPosts models.Posts
 	err := ioutils.ReadJSON(r, &newPosts)
 	if err != nil {
 		ioutils.SendError(w, http.StatusBadRequest, err.Error())

@@ -8,11 +8,9 @@ const (
 	UpdateUserQuery  = "UPDATE users SET fullname = $2, about = $3, email = $4 WHERE nickname = $1 RETURNING nickname, fullname, about, email;"
 	CreateForumQuery = `INSERT INTO forums (title, username, slug)
 				  		VALUES ($1, $2, $3) RETURNING title, username, slug, posts, threads;`
-	FindForumBySlugQuery      = "SELECT id, title, username, slug, posts, threads FROM forums WHERE slug = $1;"
-	CreateThreadWithDateQuery = `INSERT INTO threads (title, author, forum, message, slug, created)
+	FindForumBySlugQuery = "SELECT id, title, username, slug, posts, threads FROM forums WHERE slug = $1;"
+	CreateThreadQuery    = `INSERT INTO threads (title, author, forum, message, slug, created)
 								 VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, title, author, forum, message, votes, slug, created;`
-	CreateThreadWithoutDateQuery = `INSERT INTO threads (title, author, forum, message, slug)
-									VALUES ($1, $2, $3, $4, $5) RETURNING id, title, author, forum, message, votes, slug, created;`
 	UpdateForumsThreadCountQuery = "UPDATE forums SET threads = threads + 1 WHERE slug = $1 RETURNING id;"
 	UpdateForumsPostsCountQuery  = "UPDATE forums SET posts = posts + $1 WHERE slug = $2 RETURNING id;"
 	FindThreadBySlugQuery        = "SELECT id, title, author, forum, message, votes, slug, created FROM threads WHERE slug = $1;"

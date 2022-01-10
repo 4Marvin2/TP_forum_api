@@ -16,9 +16,11 @@ require (
 	github.com/go-openapi/runtime v0.21.0 // indirect
 	github.com/go-openapi/strfmt v0.21.1 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
+	github.com/jackc/pgx v3.6.2+incompatible
+	github.com/jackc/pgx/v4 v4.14.1
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mailcourses/technopark-dbms-forum v0.3.1-0.20211122133419-7f25514dd32e // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mailru/easyjson v0.7.7
 	github.com/mkideal/cli v0.2.7 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect

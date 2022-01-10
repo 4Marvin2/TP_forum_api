@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"database/sql"
+	"fmt"
 	"forumApp/internal/forumapp/models"
 	"forumApp/internal/pkg/arrutils"
 	"net/http"
@@ -80,7 +80,7 @@ func (fu *ForumUsecase) CreateThread(slug string, threadData models.Thread) (mod
 	return createdThread, http.StatusCreated, nil
 }
 
-func (fu *ForumUsecase) GetThreads(slug string, params map[string][]string) ([]models.Thread, int, error) {
+func (fu *ForumUsecase) GetThreads(slug string, params map[string][]string) (models.Threads, int, error) {
 	_, err := fu.ForumRepo.FindForumBySlug(slug)
 	if err != nil {
 		return []models.Thread{}, http.StatusNotFound, err
@@ -109,7 +109,7 @@ func (fu *ForumUsecase) GetThreads(slug string, params map[string][]string) ([]m
 	return findedThreads, http.StatusOK, nil
 }
 
-func (fu *ForumUsecase) CreateUser(userData models.User) ([]models.User, int, error) {
+func (fu *ForumUsecase) CreateUser(userData models.User) (models.Users, int, error) {
 	findedUsers, err := fu.ForumRepo.FindUsersByEmailOrNickname(userData.Email, userData.Nickname)
 	if err != nil || len(findedUsers) != 0 {
 		return findedUsers, http.StatusConflict, err
@@ -158,7 +158,7 @@ func (fu *ForumUsecase) UpdateUser(userData models.User) (models.User, int, erro
 	return updatedUser, http.StatusOK, nil
 }
 
-func (fu *ForumUsecase) CreatesPosts(threadSlugOrId string, postsData []models.Post) ([]models.Post, int, error) {
+func (fu *ForumUsecase) CreatesPosts(threadSlugOrId string, postsData []models.Post) (models.Posts, int, error) {
 	threadId, _ := strconv.Atoi(threadSlugOrId)
 
 	findedThread, err := fu.ForumRepo.FindThreadBySlugOrId(int64(threadId), threadSlugOrId)
@@ -192,12 +192,15 @@ func (fu *ForumUsecase) VoteThread(threadSlugOrId string, voteData models.Vote) 
 	}
 
 	err = fu.ForumRepo.FindVote(findedUser.Id, findedThread.Id)
-	if err != nil && err != sql.ErrNoRows {
-		return models.Thread{}, http.StatusNotFound, err
-	}
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	fmt.Println(pgx.ErrNoRows)
+	// 	fmt.Println(err == sql.ErrNoRows)
+	// }
 	if err == nil {
 		err = fu.ForumRepo.UpdateVoteThread(findedUser.Id, findedThread.Id, voteData.Voice)
 		if err != nil {
+			fmt.Println(1)
 			return models.Thread{}, http.StatusNotFound, err
 		}
 
@@ -215,6 +218,7 @@ func (fu *ForumUsecase) VoteThread(threadSlugOrId string, voteData models.Vote) 
 
 	findedThread, err = fu.ForumRepo.FindThreadBySlugOrId(int64(threadId), threadSlugOrId)
 	if err != nil {
+		fmt.Println(err)
 		return models.Thread{}, http.StatusNotFound, err
 	}
 
@@ -232,7 +236,7 @@ func (fu *ForumUsecase) FindThreadBySlugOrId(threadSlugOrId string) (models.Thre
 	return findedThread, http.StatusOK, nil
 }
 
-func (fu *ForumUsecase) GetPosts(threadSlugOrId string, params map[string][]string) ([]models.Post, int, error) {
+func (fu *ForumUsecase) GetPosts(threadSlugOrId string, params map[string][]string) (models.Posts, int, error) {
 	threadId, _ := strconv.Atoi(threadSlugOrId)
 
 	findedThread, err := fu.ForumRepo.FindThreadBySlugOrId(int64(threadId), threadSlugOrId)
@@ -294,7 +298,7 @@ func (fu *ForumUsecase) UpdateThread(threadSlugOrId string, newThread models.Thr
 	return updatedThread, http.StatusOK, nil
 }
 
-func (fu *ForumUsecase) GetForumUsers(forumSlug string, params map[string][]string) ([]models.User, int, error) {
+func (fu *ForumUsecase) GetForumUsers(forumSlug string, params map[string][]string) (models.Users, int, error) {
 	findedForum, err := fu.ForumRepo.FindForumBySlug(forumSlug)
 	if err != nil {
 		return []models.User{}, http.StatusNotFound, err

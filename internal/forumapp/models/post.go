@@ -22,3 +22,6 @@ type PostFull struct {
 	Thread *Thread `json:"thread,omitempty"`
 	Forum  *Forum  `json:"forum,omitempty"`
 }
+
+//easyjson:json
+type Posts []Post

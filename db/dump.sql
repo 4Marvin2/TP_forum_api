@@ -1,3 +1,4 @@
+SET SYNCHRONOUS_COMMIT = 'off';
 CREATE EXTENSION IF NOT EXISTS CITEXT;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS forums CASCADE;
@@ -14,7 +15,29 @@ DROP TRIGGER IF EXISTS on_vote_update ON votes;
 DROP TRIGGER IF EXISTS on_thread_insert ON threads;
 DROP TRIGGER IF EXISTS on_posts_insert ON posts;
 
-CREATE TABLE IF NOT EXISTS forums(
+DROP INDEX IF EXISTS idx_users_email;
+DROP INDEX IF EXISTS idx_users_nickname;
+DROP INDEX IF EXISTS idx_users;
+DROP INDEX IF EXISTS idx_forums_slug;
+DROP INDEX IF EXISTS idx_forums_username;
+DROP INDEX IF EXISTS idx_threads_slug;
+DROP INDEX IF EXISTS idx_threads_forum;
+DROP INDEX IF EXISTS idx_threads;
+DROP INDEX IF EXISTS idx_threads_created;
+DROP INDEX IF EXISTS idx_threads_created_forum;
+DROP INDEX IF EXISTS idx_posts_path;
+DROP INDEX IF EXISTS idx_posts_thread;
+DROP INDEX IF EXISTS idx_posts_forum;
+DROP INDEX IF EXISTS idx_posts_parent;
+DROP INDEX IF EXISTS idx_posts_thread_id;
+DROP INDEX IF EXISTS idx_posts;
+DROP INDEX IF EXISTS idx_posts_created;
+DROP INDEX IF EXISTS idx_votes_nickname_thread;
+DROP INDEX IF EXISTS idx_forum_users_user_id;
+DROP INDEX IF EXISTS idx_forum_users_forum_id;
+DROP INDEX IF EXISTS idx_forum_users_user_id_forum_id;
+
+CREATE UNLOGGED TABLE IF NOT EXISTS forums(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     title TEXT NOT NULL,
     username CITEXT NOT NULL,
@@ -23,7 +46,7 @@ CREATE TABLE IF NOT EXISTS forums(
     threads INT DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS posts(
+CREATE UNLOGGED TABLE IF NOT EXISTS posts(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     parent BIGINT DEFAULT 0,
     path BIGINT[] NOT NULL DEFAULT '{0}',
@@ -35,7 +58,7 @@ CREATE TABLE IF NOT EXISTS posts(
     created TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS threads(
+CREATE UNLOGGED TABLE IF NOT EXISTS threads(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     title TEXT NOT NULL,
     author CITEXT NOT NULL,
@@ -46,7 +69,7 @@ CREATE TABLE IF NOT EXISTS threads(
     created TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS users(
+CREATE UNLOGGED TABLE IF NOT EXISTS users(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     nickname CITEXT NOT NULL UNIQUE,
     fullname CITEXT NOT NULL,
@@ -54,13 +77,13 @@ CREATE TABLE IF NOT EXISTS users(
     email CITEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS forum_users(
+CREATE UNLOGGED TABLE IF NOT EXISTS forum_users(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     user_id BIGINT REFERENCES users(id) NOT NULL,
     forum_id BIGINT REFERENCES forums(id) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS votes(
+CREATE UNLOGGED TABLE IF NOT EXISTS votes(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     user_id BIGINT REFERENCES users(id) NOT NULL,
     thread_id BIGINT REFERENCES threads(id) NOT NULL,
@@ -123,24 +146,24 @@ CREATE TRIGGER on_posts_insert
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nickname ON users (nickname);
-CREATE INDEX IF NOT EXISTS idx_users ON users (nickname, fullname, about, email);
+-- CREATE INDEX IF NOT EXISTS idx_users ON users (nickname, fullname, about, email);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_forums_slug ON forums (slug);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_forums_username ON forums (username);
+-- CREATE UNIQUE INDEX IF NOT EXISTS idx_forums_username ON forums (username);
 
 CREATE INDEX IF NOT EXISTS idx_threads_slug ON threads (slug);
-CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads (forum);
-CREATE INDEX IF NOT EXISTS idx_threads ON threads (id, title, author, forum, message, votes, slug, created);
+-- CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads (forum);
+-- CREATE INDEX IF NOT EXISTS idx_threads ON threads (id, title, author, forum, message, votes, slug, created);
 CREATE INDEX IF NOT EXISTS idx_threads_created ON threads (created);
 CREATE INDEX IF NOT EXISTS idx_threads_created_forum ON threads (forum, created);
 
-CREATE INDEX IF NOT EXISTS idx_posts_path ON posts USING GIN (path);
-CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts (thread);
-CREATE INDEX IF NOT EXISTS idx_posts_forum ON posts (forum);
-CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts (parent);
+-- CREATE INDEX IF NOT EXISTS idx_posts_path ON posts USING GIN (path);
+-- CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts (thread);
+-- CREATE INDEX IF NOT EXISTS idx_posts_forum ON posts (forum);
+-- CREATE INDEX IF NOT EXISTS idx_posts_parent ON posts (parent);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_id ON posts (thread, id);
-CREATE INDEX IF NOT EXISTS idx_posts ON posts (id, parent, path, author, message, isEdited, forum, thread, created);
-CREATE INDEX IF NOT EXISTS idx_posts_created ON posts (created);
+-- CREATE INDEX IF NOT EXISTS idx_posts ON posts (id, parent, path, author, message, isEdited, forum, thread, created);
+-- CREATE INDEX IF NOT EXISTS idx_posts_created ON posts (created);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_nickname_thread ON votes (user_id, thread_id);
 
@@ -152,3 +175,5 @@ CLUSTER users USING users_nickname_key;
 CLUSTER threads USING idx_threads_created;
 CLUSTER forums USING idx_forums_slug;
 CLUSTER posts USING idx_posts_thread_id;
+
+-- VACUUM;
