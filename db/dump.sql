@@ -147,3 +147,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_nickname_thread ON votes (user_id, t
 CREATE INDEX idx_forum_users_user_id ON forum_users(user_id);
 CREATE INDEX idx_forum_users_forum_id ON forum_users(forum_id);
 CREATE INDEX idx_forum_users_user_id_forum_id ON forum_users (user_id, forum_id);
+
+CLUSTER users USING users_nickname_key;
+CLUSTER threads USING idx_threads_created;
+CLUSTER forums USING idx_forums_slug;
+CLUSTER posts USING idx_posts_thread_id;
