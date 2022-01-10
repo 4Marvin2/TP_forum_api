@@ -192,11 +192,6 @@ func (fu *ForumUsecase) VoteThread(threadSlugOrId string, voteData models.Vote) 
 	}
 
 	err = fu.ForumRepo.FindVote(findedUser.Id, findedThread.Id)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	fmt.Println(pgx.ErrNoRows)
-	// 	fmt.Println(err == sql.ErrNoRows)
-	// }
 	if err == nil {
 		err = fu.ForumRepo.UpdateVoteThread(findedUser.Id, findedThread.Id, voteData.Voice)
 		if err != nil {

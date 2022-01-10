@@ -12,8 +12,6 @@ type Post struct {
 	Thread   int32     `json:"thread,omitempty"`
 	Created  time.Time `json:"created,omitempty"`
 	Path     []int64   `json:"-"`
-	// Childs        Posts   `json:"childs,omitempty"`
-	// ParentPointer *Post   `json:"-"`
 }
 
 type PostFull struct {

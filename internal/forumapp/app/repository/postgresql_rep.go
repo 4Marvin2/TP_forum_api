@@ -11,12 +11,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
-	// _ "github.com/lib/pq"
 )
 
 type PostgreForumRepo struct {
-	// Conn sqlx.DB
-	// Conn pgxpool.Pool
 	Conn *pgx.ConnPool
 }
 
@@ -27,23 +24,6 @@ func NewPostgresUserRepository(config configs.PostgresConfig) (models.ForumRepos
 		config.Password,
 		config.Host,
 		config.Port)
-
-	// Conn, err := sqlx.Open("postgres", ConnStr)
-	// pgxpoo, err := pgx.co
-	// pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-	// ConnConfig:     pgxConnectionConfig,
-	// MaxConnections: 100,
-	// AfterConnect:   nil,
-	// AcquireTimeout: 0,
-	// })
-	// Conn, err := pgx.Connect("postgres://marvin:password@localhost:5433/forum")
-
-	// Conn, err := pgxpool.Connect("postgres://marvin:password@localhost:5433/forum")
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return &PostgreForumRepo{*Conn}, nil
 
 	pgxConnectionConfig, err := pgx.ParseConnectionString(ConnStr)
 	if err != nil {
@@ -75,7 +55,6 @@ func (pfr *PostgreForumRepo) FindUserByNickname(nickname string) (models.User, e
 func (pfr *PostgreForumRepo) FindUsersByEmailOrNickname(email string, nickname string) ([]models.User, error) {
 	var findedUsers []models.User
 	rows, err := pfr.Conn.Query(FindUserByEmailOrNicknameQuery, email, nickname)
-	// err := pfr.Conn.Select(&findedUsers, FindUserByEmailOrNicknameQuery, email, nickname)
 	if err != nil {
 		return []models.User{}, err
 	}
@@ -236,7 +215,6 @@ func (pfr *PostgreForumRepo) FindThreadsBySlugWithParams(slug string, limit stri
 	customizeQuery += fmt.Sprintf(" ORDER BY created %s LIMIT %s;", desc, limit)
 
 	rows, err := pfr.Conn.Query(customizeQuery, slug)
-	// err := pfr.Conn.Select(&findedThreads, customizeQuery, slug)
 	if err != nil {
 		return []models.Thread{}, err
 	}
@@ -284,10 +262,6 @@ func (pfr *PostgreForumRepo) FindThreadBySlugOrId(id int64, slug string) (models
 
 func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thread) ([]models.Post, error) {
 	createdPosts := make([]models.Post, 0)
-	// transaction, err := pfr.Conn.Begin(context.Background())
-	// if err != nil {
-	// return []models.Post{}, err
-	// }
 
 	if len(posts) == 0 {
 		return []models.Post{}, nil
@@ -303,7 +277,6 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 	for _, post := range posts {
 		_, err := pfr.FindUserByNickname(post.Author)
 		if err != nil {
-			// transaction.Rollback(context.Background())
 			return []models.Post{}, errors.New("404")
 		}
 
@@ -325,26 +298,14 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 			paramNumber += 6
 			sqlQuery += sb.String()
 			sb.Reset()
-			// sqlQuery += fmt.Sprintf(
-			// 	"(nextval('posts_id_seq'::regclass), $%d, ARRAY[currval(pg_get_serial_sequence('posts', 'id'))::bigint], $%d, $%d, $%d, $%d, $%d),",
-			// 	paramNumber,
-			// 	paramNumber+1,
-			// 	paramNumber+2,
-			// 	paramNumber+3,
-			// 	paramNumber+4,
-			// 	paramNumber+5,
-			// )
-			// paramNumber += 6
 			values = append(values, post.Parent, post.Author, post.Message, thread.Forum, thread.Id, createdTime)
 		} else {
 			var parentId int64
 			err = pfr.Conn.QueryRow(FindParentIdForPostQuery, post.Parent).Scan(&parentId)
 			if err != nil {
-				// transaction.Rollback(context.Background())
 				return []models.Post{}, err
 			}
 			if parentId != thread.Id {
-				// transaction.Rollback(context.Background())
 				return []models.Post{}, errors.New("parent post was created in another thread")
 			}
 			sb.WriteString("(nextval('posts_id_seq'::regclass)")
@@ -368,18 +329,6 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 			paramNumber += 8
 			sqlQuery += sb.String()
 			sb.Reset()
-			// sqlQuery += fmt.Sprintf(
-			// 	"(nextval('posts_id_seq'::regclass), $%d, (SELECT path FROM posts WHERE id = $%d AND thread = $%d) || currval(pg_get_serial_sequence('posts', 'id'))::bigint, $%d, $%d, $%d, $%d, $%d),",
-			// 	paramNumber,
-			// 	paramNumber+1,
-			// 	paramNumber+2,
-			// 	paramNumber+3,
-			// 	paramNumber+4,
-			// 	paramNumber+5,
-			// 	paramNumber+6,
-			// 	paramNumber+7,
-			// )
-			// paramNumber += 8
 			values = append(values, post.Parent, post.Parent, thread.Id, post.Author, post.Message, thread.Forum, thread.Id, createdTime)
 		}
 	}
@@ -387,16 +336,8 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 	sqlQuery = strings.TrimSuffix(sqlQuery, ",")
 	sqlQuery += " RETURNING id, parent, author, message, isEdited, forum, thread, created;"
 
-	// var preparedSql string
-	// _, err = pfr.Conn.Prepare(preparedSql, sqlQuery)
-	// if err != nil {
-	// return []models.Post{}, err
-	// }
 	rows, err := pfr.Conn.Query(sqlQuery, values...)
-	// rows, err := preparedSql.Query(values...)
-	// pfr.Conn.Query(sqlQuery, values...)
 	if err != nil {
-		// transaction.Rollback(context.Background())
 		return []models.Post{}, err
 	}
 	defer rows.Close()
@@ -415,7 +356,6 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 		)
 
 		if err != nil {
-			// transaction.Rollback(context.Background())
 			return []models.Post{}, err
 		}
 
@@ -425,11 +365,9 @@ func (pfr *PostgreForumRepo) CreatePosts(posts []models.Post, thread models.Thre
 	var forumId int64
 	err = pfr.Conn.QueryRow(UpdateForumsPostsCountQuery, len(createdPosts), thread.Forum).Scan(&forumId)
 	if err != nil {
-		// transaction.Rollback(context.Background())
 		return []models.Post{}, err
 	}
 
-	// err = transaction.Commit(context.Background())
 	if err != nil {
 		return []models.Post{}, err
 	}
@@ -493,7 +431,6 @@ func (pfr *PostgreForumRepo) GetPosts(threadId int64, limit string, since string
 	}
 
 	rows, err := pfr.Conn.Query(sqlQuery, threadId)
-	// err := pfr.Conn.Select(&findedPosts, sqlQuery, threadId)
 	if err != nil {
 		return []models.Post{}, err
 	}
@@ -550,22 +487,7 @@ func (pfr *PostgreForumRepo) GetForumUsers(forumId int64, limit string, since st
 	}
 	sqlQuery += fmt.Sprintf(" ORDER BY nickname %s LIMIT %s", desc, limit)
 
-	// rows, err := pfr.Conn.Query(FindUserByEmailOrNicknameQuery, email, nickname)
-	// // err := pfr.Conn.Select(&findedUsers, FindUserByEmailOrNicknameQuery, email, nickname)
-	// if err != nil {
-	// 	return []models.User{}, err
-	// }
-	// for rows.Next() {
-	// 	var curUser models.User
-	// 	err := rows.Scan(&curUser.Nickname, &curUser.About, &curUser.Email, &curUser.Fullname)
-	// 	if err != nil {
-	// 		return []models.User{}, err
-	// 	}
-	// 	findedUsers = append(findedUsers, curUser)
-	// }
-
 	rows, err := pfr.Conn.Query(sqlQuery, forumId)
-	// err := pfr.Conn.Select(&findedUsers, sqlQuery, forumId)
 	if err != nil {
 		return []models.User{}, err
 	}
