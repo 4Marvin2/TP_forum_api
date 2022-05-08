@@ -2,7 +2,7 @@
     "postgres": {
         "host": "146.185.240.105",
         "port": "5432",
-        "user": "marvin",
+        "user": "mikhail",
         "pass": "password",
         "name": "forum"
     }
