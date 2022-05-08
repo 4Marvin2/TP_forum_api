@@ -5,6 +5,7 @@ import (
 	"forumApp/internal/forumapp/app/delivery"
 	"forumApp/internal/forumapp/app/repository"
 	"forumApp/internal/forumapp/app/usecase"
+	"forumApp/internal/pkg/metrics"
 	"log"
 	"net/http"
 
@@ -26,6 +27,8 @@ func main() {
 	usecase := usecase.NewUserUsecase(repo, timeoutContext)
 
 	delivery.SetUserRouting(router, usecase)
+
+	metrics.RegisterMetrics(router)
 
 	srv := &http.Server{
 		Handler:      router,
