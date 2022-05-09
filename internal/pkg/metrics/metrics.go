@@ -2,8 +2,6 @@ package metrics
 
 import (
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -39,13 +37,9 @@ func RegisterMetrics(r *mux.Router) *PromMetrics {
 func Metrics(metrics *PromMetrics) (mw func(http.Handler) http.Handler) {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			reqTime := time.Now()
 			next.ServeHTTP(w, r)
-			respTime := time.Since(reqTime)
 			if r.URL.Path != "/metrics" {
-				metrics.Hits.WithLabelValues(strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Inc()
-				metrics.Timings.WithLabelValues(
-					strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Observe(respTime.Seconds())
+				metrics.Hits.WithLabelValues("requests").Inc()
 			}
 		})
 	}
