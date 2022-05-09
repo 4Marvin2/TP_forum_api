@@ -28,7 +28,9 @@ func main() {
 
 	delivery.SetUserRouting(router, usecase)
 
-	metrics.RegisterMetrics(router)
+	prometheusMetrics := metrics.RegisterMetrics(router)
+
+	router.Use(metrics.Metrics(prometheusMetrics))
 
 	srv := &http.Server{
 		Handler:      router,
