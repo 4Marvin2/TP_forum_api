@@ -39,7 +39,7 @@ func Metrics(metrics *PromMetrics) (mw func(http.Handler) http.Handler) {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
 			if r.URL.Path != "/metrics" {
-				metrics.Hits.WithLabelValues("requests").Inc()
+				metrics.Hits.WithLabelValues("requests", r.Method, "api").Inc()
 			}
 		})
 	}
